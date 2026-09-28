@@ -1,0 +1,1552 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detektif Paragraf: Duel Tentara 3D</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Fredoka:wght@400;600;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Three.js for 3D Battle Arena -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Fredoka', 'cursive'],
+                        military: ['"Black Ops One"', 'cursive']
+                    },
+                    colors: {
+                        armyRed: '#EF4444',
+                        armyBlue: '#3B82F6',
+                        camoGreen: '#0F172A'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #090d16;
+            color: #f8fafc;
+            min-height: 100vh;
+            user-select: none;
+        }
+        .font-military { font-family: 'Black Ops One', cursive; }
+        .glass-card {
+            background: rgba(15, 23, 42, 0.88);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .btn-choice {
+            transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .btn-choice:hover {
+            transform: translateY(-2px);
+        }
+        .btn-choice:active {
+            transform: scale(0.97);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen relative overflow-x-hidden">
+
+    <!-- Confetti Canvas overlay -->
+    <canvas id="confetti-canvas" class="fixed inset-0 pointer-events-none z-50"></canvas>
+
+    <!-- Header / Navbar -->
+    <header class="w-full bg-slate-900/90 backdrop-blur-md border-b border-slate-800 sticky top-0 z-40 px-4 py-2.5">
+        <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center space-x-3 cursor-pointer" onclick="switchView('home')">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-red-600 via-amber-500 to-blue-600 flex items-center justify-center text-white font-bold text-xl shadow-lg">
+                    🪖
+                </div>
+                <div>
+                    <h1 class="font-military text-xl sm:text-2xl text-amber-400 tracking-wider">
+                        DETEKTIF PARAGRAF 3D
+                    </h1>
+                    <p class="text-xs text-slate-400">Duel Tentara Ide Pokok & Pendukung • <span id="header-class-tag" class="text-amber-300 font-semibold">Kelas 4A</span></p>
+                </div>
+            </div>
+
+            <!-- Navigation Buttons -->
+            <nav class="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                <button onclick="switchView('materi')" id="nav-materi" class="px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition bg-slate-800 text-slate-300 hover:bg-slate-700 flex items-center gap-1.5">
+                    <i class="fa-solid fa-book-bookmark text-amber-400"></i> Materi
+                </button>
+                <button onclick="switchView('home')" id="nav-home" class="px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition bg-amber-500 text-slate-950 flex items-center gap-1.5">
+                    <i class="fa-solid fa-crosshairs"></i> Arena Duel
+                </button>
+                <button onclick="switchView('roster')" id="nav-roster" class="px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition bg-slate-800 text-slate-300 hover:bg-slate-700 flex items-center gap-1.5">
+                    <i class="fa-solid fa-users"></i> Kelola Siswa (<span id="nav-student-count">0</span>)
+                </button>
+                <button onclick="switchView('leaderboard')" id="nav-leaderboard" class="px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition bg-slate-800 text-slate-300 hover:bg-slate-700 flex items-center gap-1.5">
+                    <i class="fa-solid fa-trophy"></i> Klasemen
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <main class="flex-1 max-w-7xl w-full mx-auto p-3 sm:p-5 flex flex-col justify-center">
+
+        <!-- VIEW: MATERI PEMBELAJARAN LENGKAP -->
+        <section id="view-materi" class="hidden space-y-6">
+            <div class="glass-card rounded-3xl p-6 md:p-8 border border-amber-500/30 shadow-2xl">
+                <div class="flex items-center gap-3 mb-6 border-b border-slate-700 pb-4">
+                    <div class="w-12 h-12 rounded-2xl bg-amber-500/20 text-amber-400 flex items-center justify-center text-2xl border border-amber-500/40">
+                        📚
+                    </div>
+                    <div>
+                        <h2 class="font-military text-2xl sm:text-4xl text-amber-400">MODUL DETEKTIF PARAGRAF</h2>
+                        <p class="text-xs sm:text-sm text-slate-300">Pahami rahasia membedakan Ide Pokok & Ide Pendukung sebelum bertanding!</p>
+                    </div>
+                </div>
+
+                <!-- Tabs Materi -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <div class="bg-slate-900/90 p-5 rounded-2xl border border-red-500/30">
+                        <div class="text-red-400 text-xl font-bold mb-2 flex items-center gap-2">
+                            <i class="fa-solid fa-bullseye"></i> 1. Apa itu Ide Pokok?
+                        </div>
+                        <p class="text-xs sm:text-sm text-slate-300 leading-relaxed mb-3">
+                            <strong>Ide Pokok</strong> (Gagasan Utama) adalah <strong>inti / pokok pembahasan</strong> dari sebuah paragraf.
+                        </p>
+                        <ul class="text-xs text-slate-300 space-y-1.5 list-disc list-inside bg-slate-950 p-3 rounded-xl border border-slate-800">
+                            <li>Bersifat paling umum dalam paragraf.</li>
+                            <li>Biasanya berada di <strong>kalimat utama</strong>.</li>
+                            <li>Satu paragraf <strong>hanya punya 1 Ide Pokok</strong>.</li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-slate-900/90 p-5 rounded-2xl border border-blue-500/30">
+                        <div class="text-blue-400 text-xl font-bold mb-2 flex items-center gap-2">
+                            <i class="fa-solid fa-list-check"></i> 2. Apa itu Ide Pendukung?
+                        </div>
+                        <p class="text-xs sm:text-sm text-slate-300 leading-relaxed mb-3">
+                            <strong>Ide Pendukung</strong> (Gagasan Penjelas) adalah kalimat yang <strong>menjelaskan / merinci</strong> ide pokok.
+                        </p>
+                        <ul class="text-xs text-slate-300 space-y-1.5 list-disc list-inside bg-slate-950 p-3 rounded-xl border border-slate-800">
+                            <li>Berisi contoh, alasan, data, atau rincian.</li>
+                            <li>Terdapat pada <strong>kalimat penjelas</strong>.</li>
+                            <li>Bisa terdiri dari <strong>beberapa kalimat</strong>.</li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-slate-900/90 p-5 rounded-2xl border border-amber-500/30">
+                        <div class="text-amber-400 text-xl font-bold mb-2 flex items-center gap-2">
+                            <i class="fa-solid fa-compass"></i> 3. Di Mana Letak Ide Pokok?
+                        </div>
+                        <p class="text-xs sm:text-sm text-slate-300 leading-relaxed mb-3">
+                            Berdasarkan letaknya, paragraf dibedakan menjadi:
+                        </p>
+                        <div class="text-xs text-slate-300 space-y-2 bg-slate-950 p-3 rounded-xl border border-slate-800">
+                            <div><strong class="text-amber-300">Deduktif:</strong> Di awal paragraf.</div>
+                            <div><strong class="text-amber-300">Induktif:</strong> Di akhir paragraf.</div>
+                            <div><strong class="text-amber-300">Campuran:</strong> Di awal dan akhir.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contoh Bedah Paragraf Interaktif -->
+                <div class="bg-slate-900/90 rounded-2xl p-5 border border-slate-700">
+                    <h3 class="font-military text-lg text-amber-400 mb-3 flex items-center gap-2">
+                        <i class="fa-solid fa-magnifying-glass-chart"></i> CONTOH BEDAH PARAGRAF DETEKTIF
+                    </h3>
+                    
+                    <div class="p-4 bg-slate-950 rounded-xl border border-slate-800 text-sm sm:text-base leading-relaxed mb-4">
+                        <span class="p-1 px-2 rounded bg-red-500/20 text-red-400 font-bold border border-red-500/40 mr-1">[Kalimat 1]</span>
+                        <strong>Kelinci adalah hewan peliharaan yang sangat populer.</strong> 
+                        <span class="p-1 px-2 rounded bg-blue-500/20 text-blue-400 font-bold border border-blue-500/40 mx-1">[Kalimat 2]</span>
+                        Bulunya yang lembut membuat banyak orang suka membelainya. 
+                        <span class="p-1 px-2 rounded bg-blue-500/20 text-blue-400 font-bold border border-blue-500/40 mx-1">[Kalimat 3]</span>
+                        Telinganya yang panjang dan gerakannya yang lincah sangat menggemaskan.
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs sm:text-sm">
+                        <div class="p-3 bg-red-950/40 border border-red-500/50 rounded-xl text-slate-200">
+                            <div class="font-bold text-red-400 mb-1">🎯 IDE POKOK:</div>
+                            Kalimat 1: Kelinci merupakan hewan peliharaan yang populer. (Paling Umum)
+                        </div>
+                        <div class="p-3 bg-blue-950/40 border border-blue-500/50 rounded-xl text-slate-200">
+                            <div class="font-bold text-blue-400 mb-1">🔍 IDE PENDUKUNG:</div>
+                            Kalimat 2 & 3: Merinci alasan mengapa kelinci populer (bulu lembut, menggemaskan).
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-6 flex justify-center">
+                    <button onclick="switchView('home')" class="px-8 py-3.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-military text-lg rounded-xl shadow-xl transition flex items-center gap-2">
+                        <i class="fa-solid fa-play"></i> SAYA SIAP BERTANDING SEKARANG!
+                    </button>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- VIEW 1: HOME / MATCHMAKER -->
+        <section id="view-home" class="space-y-6">
+            <div class="glass-card rounded-3xl p-6 md:p-8 text-center relative overflow-hidden shadow-2xl border border-slate-700">
+                <div class="inline-block px-4 py-1.5 bg-red-500/20 text-red-400 border border-red-500/30 rounded-full text-xs font-bold uppercase tracking-wider mb-3">
+                    ⚡ Sistem Skor Berbasis Kecepatan & Ketepatan
+                </div>
+                <h2 class="font-military text-3xl sm:text-5xl text-white mb-3 tracking-wide">
+                    TENTARA MANA YANG LEBIH CEPAT & TEPAT?
+                </h2>
+                <p class="text-slate-300 max-w-2xl mx-auto text-sm sm:text-base mb-6">
+                    Pilih 2 siswa dari <span id="home-class-name" class="text-amber-400 font-bold">Kelas</span>. Siapa cepat & benar akan mendapat <span class="text-amber-400 font-bold">SKOR LEBIH TINGGI</span>. Hati-hati, menjawab asal justru memberikan penalti skor!
+                </p>
+
+                <!-- Matchmaker Selection Box -->
+                <div class="max-w-3xl mx-auto bg-slate-900/90 rounded-2xl p-5 border border-slate-700 shadow-inner grid grid-cols-1 md:grid-cols-7 gap-4 items-center">
+                    
+                    <!-- Player A Selector -->
+                    <div class="md:col-span-3 bg-red-950/40 border-2 border-red-500/50 rounded-xl p-4 text-center">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-xs font-military text-red-400 tracking-wider">TENTARA A (MERAH)</span>
+                            <span class="text-xl">🪖</span>
+                        </div>
+                        <select id="p1-select" class="bg-slate-800 text-white font-bold text-lg rounded-lg px-3 py-2 w-full border border-red-500/40 focus:outline-none focus:ring-2 focus:ring-red-500">
+                            <!-- Populated by JS -->
+                        </select>
+                        <div class="text-xs text-slate-400 mt-2" id="p1-stats">Total Skor: 0 PTS | Menang: 0</div>
+                    </div>
+
+                    <!-- VS Badge -->
+                    <div class="md:col-span-1 flex flex-col items-center justify-center">
+                        <div class="w-12 h-12 rounded-full bg-gradient-to-tr from-red-600 to-blue-600 flex items-center justify-center text-white font-military font-black text-xl shadow-lg border-2 border-amber-400">
+                            VS
+                        </div>
+                        <button onclick="randomizePair()" class="mt-2 text-xs text-amber-400 hover:text-amber-300 flex items-center gap-1 underline">
+                            <i class="fa-solid fa-dice"></i> Acak
+                        </button>
+                    </div>
+
+                    <!-- Player B Selector -->
+                    <div class="md:col-span-3 bg-blue-950/40 border-2 border-blue-500/50 rounded-xl p-4 text-center">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-xs font-military text-blue-400 tracking-wider">TENTARA B (BIRU)</span>
+                            <span class="text-xl">🪖</span>
+                        </div>
+                        <select id="p2-select" class="bg-slate-800 text-white font-bold text-lg rounded-lg px-3 py-2 w-full border border-blue-500/40 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <!-- Populated by JS -->
+                        </select>
+                        <div class="text-xs text-slate-400 mt-2" id="p2-stats">Total Skor: 0 PTS | Menang: 0</div>
+                    </div>
+
+                </div>
+
+                <!-- Match Controls -->
+                <div class="mt-6 flex flex-wrap justify-center gap-3">
+                    <button onclick="startMatch()" class="px-8 py-4 bg-gradient-to-r from-red-600 via-amber-500 to-blue-600 hover:brightness-110 text-white font-military text-xl sm:text-2xl rounded-2xl shadow-2xl hover:scale-105 active:scale-95 transition-all flex items-center gap-3">
+                        <i class="fa-solid fa-crosshairs animate-pulse"></i> MULAI PERTANDINGAN 3D!
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- VIEW 2: ARENA GAMEPLAY (SIMULTANEOUS 2 PLAYERS 3D) -->
+        <section id="view-arena" class="hidden space-y-3">
+            
+            <!-- Battlefield 3D Canvas Container -->
+            <div class="glass-card rounded-2xl p-2 border border-slate-700 shadow-2xl relative overflow-hidden bg-slate-950">
+                <!-- 3D WebGL Canvas -->
+                <div id="three-container" class="w-full h-52 sm:h-72 rounded-xl bg-slate-900 overflow-hidden relative"></div>
+
+                <!-- Status Banner Overlay -->
+                <div id="battle-banner" class="absolute top-4 left-1/2 -translate-x-1/2 px-6 py-1.5 rounded-full bg-slate-900/90 border border-amber-500/50 text-amber-300 font-military text-sm sm:text-base shadow-xl backdrop-blur text-center tracking-wider z-10">
+                    RONDE 1 DARI 3 • ADU KECEPATAN!
+                </div>
+            </div>
+
+            <!-- Reading Paragraph Banner -->
+            <div class="bg-slate-900/90 rounded-2xl p-4 border border-slate-800 shadow-inner">
+                <div class="flex items-center justify-between mb-1.5 text-xs">
+                    <span class="font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
+                        <i class="fa-solid fa-book-open"></i> Soal Paragraf:
+                    </span>
+                    <span id="question-type-tag" class="px-2.5 py-1 rounded-lg bg-amber-500/20 text-amber-300 font-bold border border-amber-500/40 text-xs sm:text-sm">
+                        Cari: IDE POKOK
+                    </span>
+                </div>
+                <p id="arena-paragraph" class="text-sm sm:text-base text-slate-100 font-medium leading-relaxed">
+                    <!-- Paragraph text populated by JS -->
+                </p>
+            </div>
+
+            <!-- Dual Interactive Answer Panel -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                
+                <!-- Player A Controls (Left - Red Team) -->
+                <div id="panel-player-a" class="bg-red-950/30 border-2 border-red-600/50 rounded-2xl p-3 sm:p-4 shadow-lg flex flex-col justify-between">
+                    <div class="flex items-center justify-between border-b border-red-500/30 pb-2 mb-3">
+                        <span id="label-name-a" class="font-military text-red-400 text-lg">TENTARA A</span>
+                        <span id="score-badge-a" class="font-military text-amber-400 text-xl">0 PTS</span>
+                    </div>
+
+                    <div id="choices-a" class="space-y-2">
+                        <!-- Buttons generated & shuffled by JS -->
+                    </div>
+                </div>
+
+                <!-- Player B Controls (Right - Blue Team) -->
+                <div id="panel-player-b" class="bg-blue-950/30 border-2 border-blue-600/50 rounded-2xl p-3 sm:p-4 shadow-lg flex flex-col justify-between">
+                    <div class="flex items-center justify-between border-b border-blue-500/30 pb-2 mb-3">
+                        <span id="label-name-b" class="font-military text-blue-400 text-lg">TENTARA B</span>
+                        <span id="score-badge-b" class="font-military text-amber-400 text-xl">0 PTS</span>
+                    </div>
+
+                    <div id="choices-b" class="space-y-2">
+                        <!-- Buttons generated & shuffled by JS -->
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Next Round Overlay Modal -->
+            <div id="round-result-modal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+                <div class="glass-card max-w-lg w-full rounded-3xl p-6 text-center border-2 border-amber-500/50 shadow-2xl space-y-4">
+                    <div id="round-result-icon" class="text-5xl">💥</div>
+                    <h3 id="round-result-title" class="font-military text-2xl text-amber-300">
+                        HASIL RONDE
+                    </h3>
+                    <p id="round-result-desc" class="text-sm text-slate-200">
+                        <!-- Detailed feedback -->
+                    </p>
+                    <button id="btn-next-round" onclick="proceedNextRound()" class="w-full py-3 bg-amber-500 hover:bg-amber-400 text-slate-950 font-military text-xl rounded-xl shadow-lg transition">
+                        LANJUT RONDE / HASIL ➔
+                    </button>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- VIEW 3: MATCH RESULTS / FINALE -->
+        <section id="view-results" class="hidden text-center space-y-6">
+            <div class="glass-card rounded-3xl p-8 max-w-2xl mx-auto border border-amber-500/40 shadow-2xl">
+                <div id="results-icon" class="text-6xl mb-3">🏆</div>
+                <h2 id="results-winner-title" class="font-military text-3xl sm:text-4xl text-amber-400 mb-2">
+                    HASIL PERTANDINGAN
+                </h2>
+                <p id="results-winner-detail" class="text-slate-300 text-sm sm:text-base mb-6">
+                    <!-- Detailed description -->
+                </p>
+
+                <!-- Final Score Comparison -->
+                <div class="grid grid-cols-2 gap-4 mb-6">
+                    <div class="bg-red-950/40 border border-red-500/40 p-4 rounded-xl">
+                        <div id="res-p1-name" class="font-military text-red-300 truncate">Pemain A</div>
+                        <div id="res-p1-score" class="text-3xl font-military text-white mt-1">0 PTS</div>
+                        <div id="res-p1-correct" class="text-xs text-slate-400 mt-1">0 Benar</div>
+                    </div>
+                    <div class="bg-blue-950/40 border border-blue-500/40 p-4 rounded-xl">
+                        <div id="res-p2-name" class="font-military text-blue-300 truncate">Pemain B</div>
+                        <div id="res-p2-score" class="text-3xl font-military text-white mt-1">0 PTS</div>
+                        <div id="res-p2-correct" class="text-xs text-slate-400 mt-1">0 Benar</div>
+                    </div>
+                </div>
+
+                <div class="flex flex-wrap items-center justify-center gap-3">
+                    <button onclick="switchView('home')" class="px-6 py-3 bg-slate-800 hover:bg-slate-700 text-white font-military rounded-xl border border-slate-600 transition">
+                        <i class="fa-solid fa-rotate-right"></i> Main Pasangan Lain
+                    </button>
+                    <button onclick="switchView('leaderboard')" class="px-6 py-3 bg-amber-500 hover:bg-amber-400 text-slate-950 font-military rounded-xl shadow-lg transition">
+                        <i class="fa-solid fa-trophy"></i> Lihat Klasemen
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- VIEW 4: STUDENT & CLASS ROSTER MANAGEMENT -->
+        <section id="view-roster" class="hidden space-y-6">
+            <div class="glass-card rounded-3xl p-6 border border-slate-700 shadow-2xl">
+                
+                <!-- Class Selection & Control Bar -->
+                <div class="bg-slate-900/90 rounded-2xl p-4 border border-slate-800 mb-6 flex flex-wrap items-center justify-between gap-4">
+                    <div class="flex flex-wrap items-center gap-3">
+                        <div>
+                            <label class="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1">Pilih Kelas Aktif:</label>
+                            <select id="class-select" onchange="handleClassChange(this.value)" class="bg-slate-800 text-amber-400 font-bold text-base rounded-xl px-3 py-2 border border-amber-500/40 focus:outline-none">
+                                <!-- Class options populated by JS -->
+                            </select>
+                        </div>
+                        <div class="flex items-center gap-2 pt-5">
+                            <button onclick="promptCreateClass()" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-amber-400 border border-amber-500/30 rounded-xl text-xs font-semibold transition flex items-center gap-1.5">
+                                <i class="fa-solid fa-plus"></i> Kelas Baru
+                            </button>
+                            <button onclick="promptDeleteClass()" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-red-400 border border-red-500/30 rounded-xl text-xs font-semibold transition flex items-center gap-1.5">
+                                <i class="fa-solid fa-trash-can"></i> Hapus Kelas
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Actions for Students -->
+                    <div class="flex flex-wrap items-center gap-2">
+                        <button onclick="openAddStudentModal()" class="px-3.5 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-xl text-xs font-bold transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-user-plus"></i> + Tambah Siswa
+                        </button>
+                        <button onclick="openBatchImportModal()" class="px-3.5 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-file-import"></i> Paste Banyak Nama
+                        </button>
+                        <button onclick="confirmResetModal()" class="px-3.5 py-2 bg-red-500/20 text-red-300 border border-red-500/40 rounded-xl text-xs font-bold hover:bg-red-500/30 transition">
+                            <i class="fa-solid fa-rotate"></i> Reset Skor
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Roster Header -->
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="font-military text-xl text-amber-400 flex items-center gap-2">
+                        <i class="fa-solid fa-users"></i> DAFTAR SISWA: <span id="roster-class-title" class="text-white">Kelas 4A</span> (<span id="roster-count-title">0</span> Siswa)
+                    </h3>
+                    <p class="text-xs text-slate-400">Klik nama untuk mengedit • Tekan ❌ untuk menghapus</p>
+                </div>
+
+                <!-- Roster Grid -->
+                <div id="roster-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 max-h-[55vh] overflow-y-auto custom-scrollbar">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- VIEW 5: LEADERBOARD -->
+        <section id="view-leaderboard" class="hidden space-y-6">
+            <div class="glass-card rounded-3xl p-6 border border-slate-700 shadow-2xl">
+                <h2 class="font-military text-3xl text-center text-amber-400 mb-2">
+                    🏆 KLASEMEN DETEKTIF TENTARA
+                </h2>
+                <p class="text-center text-xs text-slate-400 mb-6">Peringkat <span id="leaderboard-class-tag" class="text-amber-300 font-bold">Kelas</span> diurutkan berdasarkan Total Skor Kecepatan & Ketepatan</p>
+
+                <div class="bg-slate-900/80 rounded-2xl border border-slate-800 overflow-hidden shadow-inner">
+                    <table class="w-full text-left text-sm">
+                        <thead>
+                            <tr class="bg-slate-800 text-slate-400 font-military text-xs uppercase border-b border-slate-700">
+                                <th class="py-3 px-4 text-center">Pos</th>
+                                <th class="py-3 px-4">Nama Siswa</th>
+                                <th class="py-3 px-4 text-center">Tanding</th>
+                                <th class="py-3 px-4 text-center">Menang</th>
+                                <th class="py-3 px-4 text-center">Jawaban Benar</th>
+                                <th class="py-3 px-4 text-right">Total Skor PTS</th>
+                            </tr>
+                        </thead>
+                        <tbody id="leaderboard-table-body" class="divide-y divide-slate-800 font-medium">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- MODAL: BATCH IMPORT STUDENTS -->
+    <div id="batch-modal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+        <div class="glass-card max-w-lg w-full rounded-2xl p-6 border border-amber-500/40 shadow-2xl space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-700 pb-3">
+                <h3 class="font-military text-xl text-amber-400 flex items-center gap-2">
+                    <i class="fa-solid fa-file-import"></i> IMPOR BANYAK NAMA SISWA
+                </h3>
+                <button onclick="closeBatchModal()" class="text-slate-400 hover:text-white text-xl">✕</button>
+            </div>
+            <p class="text-xs text-slate-300">
+                Tempel (paste) daftar nama siswa di bawah ini. Pisahkan setiap nama dengan <strong>baris baru (Enter)</strong> atau tanda koma.
+            </p>
+            <textarea id="batch-names-input" rows="8" placeholder="Ahmad Fauzi&#10;Anisa Rahma&#10;Budi Santoso&#10;Citra Dewi..." class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-amber-400 custom-scrollbar"></textarea>
+            <div class="flex justify-end gap-3">
+                <button onclick="closeBatchModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl text-xs">Batal</button>
+                <button onclick="processBatchImport()" class="px-5 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs">Simpan & Impor</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Dialog Modal (Replacing Native Confirm/Alert) -->
+    <div id="custom-modal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+        <div class="glass-card max-w-sm w-full rounded-2xl p-5 text-center border border-amber-500/40 shadow-2xl space-y-4">
+            <div id="custom-modal-icon" class="text-4xl">⚠️</div>
+            <h3 id="custom-modal-title" class="font-military text-xl text-amber-300">Konfirmasi</h3>
+            <p id="custom-modal-desc" class="text-xs sm:text-sm text-slate-300">Apakah Anda yakin?</p>
+            <div id="custom-modal-actions" class="flex justify-center gap-3">
+                <!-- Dynamic buttons -->
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Logic & 3D WebGL Rendering -->
+    <script>
+        const DEFAULT_CLASSES = [
+            {
+                id: "class_4a",
+                name: "Kelas 4A",
+                students: [
+                    "Ahmad Fauzi", "Anisa Rahma", "Budi Santoso", "Citra Dewi",
+                    "Deni Pratama", "Eka Putri", "Fajar Hidayat", "Gita Gutawa",
+                    "Hadi Wijaya", "Indah Sari", "Joko Susilo", "Kurnia Fitri",
+                    "Lestari Ayu", "Muhammad Rizky", "Nabila Nur", "Oki Setiawan",
+                    "Putri Utami", "Qori Maulana", "Rian Hidayat", "Siti Aminah",
+                    "Taufik Hidayat", "Vina Panduwinata"
+                ].map((name, i) => ({ id: i + 1, name, score: 0, matchesPlayed: 0, wins: 0, totalCorrect: 0 }))
+            },
+            {
+                id: "class_5b",
+                name: "Kelas 5B",
+                students: [
+                    "Aditya Pratama", "Bagas Wisnu", "Clara Shinta", "Dimas Anggara",
+                    "Erlina Sari", "Farhan Majid"
+                ].map((name, i) => ({ id: i + 1, name, score: 0, matchesPlayed: 0, wins: 0, totalCorrect: 0 }))
+            }
+        ];
+
+        const QUESTION_BANK = [
+            {
+                text: "Kelinci adalah hewan peliharaan yang sangat populer. Bulunya yang lembut membuat banyak orang suka membelainya. Telinganya yang panjang dan gerakannya yang lincah sangat menggemaskan.",
+                sentences: [
+                    "Kelinci adalah hewan peliharaan yang sangat populer.",
+                    "Bulunya yang lembut membuat banyak orang suka membelainya.",
+                    "Telinganya yang panjang dan gerakannya yang lincah sangat menggemaskan."
+                ],
+                mainIndex: 0,
+                explanation: "Kalimat pertama adalah ide pokok (paling umum), sedangkan kalimat 2 dan 3 menjelaskan alasan kelinci populer (ide pendukung)."
+            },
+            {
+                text: "Pohon kelapa dikenal sebagai tumbuhan berdaya guna tinggi. Batangnya dapat dimanfaatkan untuk bahan bangunan rumah. Buahnya menghasilkan air segar dan minyak, sedangkan daunnya untuk janur kethupat.",
+                sentences: [
+                    "Pohon kelapa dikenal sebagai tumbuhan berdaya guna tinggi.",
+                    "Batangnya dapat dimanfaatkan untuk bahan bangunan rumah.",
+                    "Buahnya menghasilkan air segar dan minyak, sedangkan daunnya untuk janur kethupat."
+                ],
+                mainIndex: 0,
+                explanation: "Kalimat 1 adalah gagasan utama (tumbuhan serbaguna). Kalimat 2 dan 3 memberi rincian bagian pohon kelapa (ide pendukung)."
+            },
+            {
+                text: "Mencuci tangan dengan sabun sangat penting untuk menjaga kesehatan tubuh. Sabun dapat membunuh kuman dan bakteri berbahaya yang menempel di telapak tangan. Dengan tangan yang bersih, kita terhindar dari penyakit pencernaan.",
+                sentences: [
+                    "Mencuci tangan dengan sabun sangat penting untuk menjaga kesehatan tubuh.",
+                    "Sabun dapat membunuh kuman dan bakteri berbahaya yang menempel di telapak tangan.",
+                    "Dengan tangan yang bersih, kita terhindar dari penyakit pencernaan."
+                ],
+                mainIndex: 0,
+                explanation: "Inti pembahasan paragraf ini adalah pentingnya cuci tangan (Kalimat 1)."
+            },
+            {
+                text: "Sampah plastik memerlukan waktu puluhan hingga ratusan tahun untuk terurai di dalam tanah. Kantong plastik yang dibuang sembarangan dapat mencemari lingkungan. Oleh sebab itu, sampah plastik merupakan ancaman serius bagi kelestarian lingkungan.",
+                sentences: [
+                    "Sampah plastik memerlukan waktu puluhan hingga ratusan tahun untuk terurai di dalam tanah.",
+                    "Kantong plastik yang dibuang sembarangan dapat mencemari lingkungan.",
+                    "Oleh sebab itu, sampah plastik merupakan ancaman serius bagi kelestarian lingkungan."
+                ],
+                mainIndex: 2,
+                explanation: "Paragraf ini berjenis induktif, inti kesimpulan paragraf berada di kalimat akhir (Kalimat 3)."
+            },
+            {
+                text: "Buku adalah jendela dunia yang membuka wawasan membaca kita. Dengan membaca buku, kita bisa mengetahui berbagai ilmu pengetahuan dari seluruh penjuru bumi. Membaca juga melatih imajinasi dan daya pikir anak.",
+                sentences: [
+                    "Buku adalah jendela dunia yang membuka wawasan membaca kita.",
+                    "Dengan membaca buku, kita bisa mengetahui berbagai ilmu pengetahuan dari seluruh penjuru bumi.",
+                    "Membaca juga melatih imajinasi dan daya pikir anak."
+                ],
+                mainIndex: 0,
+                explanation: "Gagasan utamanya adalah manfaat buku sebagai jendela dunia (Kalimat 1)."
+            }
+        ];
+
+        const sfx = {
+            ctx: null,
+            init() {
+                if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+            },
+            shoot() {
+                this.init();
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(800, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(100, this.ctx.currentTime + 0.12);
+                gain.gain.setValueAtTime(0.3, this.ctx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.12);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.12);
+            },
+            hit() {
+                this.init();
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(150, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(40, this.ctx.currentTime + 0.2);
+                gain.gain.setValueAtTime(0.4, this.ctx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.2);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.2);
+            },
+            misfire() {
+                this.init();
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(120, this.ctx.currentTime);
+                osc.frequency.linearRampToValueAtTime(60, this.ctx.currentTime + 0.25);
+                gain.gain.setValueAtTime(0.3, this.ctx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.25);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.25);
+            },
+            explode() {
+                this.init();
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(300, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(30, this.ctx.currentTime + 0.5);
+                gain.gain.setValueAtTime(0.5, this.ctx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.5);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.5);
+            }
+        };
+
+        const confetti = {
+            particles: [],
+            animId: null,
+            burst() {
+                const canvas = document.getElementById('confetti-canvas');
+                if (!canvas) return;
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                const ctx = canvas.getContext('2d');
+                this.particles = [];
+                for (let i = 0; i < 70; i++) {
+                    this.particles.push({
+                        x: canvas.width / 2,
+                        y: canvas.height / 2,
+                        vx: (Math.random() - 0.5) * 16,
+                        vy: (Math.random() - 0.7) * 16,
+                        size: Math.random() * 8 + 4,
+                        color: `hsl(${Math.random() * 360}, 100%, 50%)`,
+                        life: 100
+                    });
+                }
+                const draw = () => {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    this.particles.forEach((p) => {
+                        p.x += p.vx;
+                        p.y += p.vy;
+                        p.vy += 0.3;
+                        p.life--;
+                        ctx.fillStyle = p.color;
+                        ctx.beginPath();
+                        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                        ctx.fill();
+                    });
+                    this.particles = this.particles.filter(p => p.life > 0);
+                    if (this.particles.length > 0) {
+                        this.animId = requestAnimationFrame(draw);
+                    }
+                };
+                if (this.animId) cancelAnimationFrame(this.animId);
+                draw();
+            },
+            clear() {
+                const canvas = document.getElementById('confetti-canvas');
+                if (canvas) {
+                    const ctx = canvas.getContext('2d');
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                }
+                if (this.animId) cancelAnimationFrame(this.animId);
+            }
+        };
+
+        let appData = {
+            activeClassId: "class_4a",
+            classes: []
+        };
+
+        let currentMatch = {
+            p1Index: 0,
+            p2Index: 1,
+            p1Correct: 0,
+            p2Correct: 0,
+            p1PointsGained: 0,
+            p2PointsGained: 0,
+            currentRound: 1,
+            totalRounds: 3,
+            currentQuestion: null,
+            isMainIdeaTarget: true,
+            roundLocked: false,
+            p1Disabled: false,
+            p2Disabled: false,
+            roundStartTime: 0
+        };
+
+        function initApp() {
+            loadFromStorage();
+            renderClassSelectOptions();
+            updateUIForActiveClass();
+        }
+
+        function loadFromStorage() {
+            const saved = localStorage.getItem('detektif_tentara_3d_classes_v2');
+            if (saved) {
+                try {
+                    appData = JSON.parse(saved);
+                } catch (e) {
+                    setupDefaultClasses();
+                }
+            } else {
+                setupDefaultClasses();
+            }
+        }
+
+        function setupDefaultClasses() {
+            appData = {
+                activeClassId: "class_4a",
+                classes: JSON.parse(JSON.stringify(DEFAULT_CLASSES))
+            };
+            saveToStorage();
+        }
+
+        function saveToStorage() {
+            localStorage.setItem('detektif_tentara_3d_classes_v2', JSON.stringify(appData));
+        }
+
+        function getActiveClass() {
+            let cls = appData.classes.find(c => c.id === appData.activeClassId);
+            if (!cls && appData.classes.length > 0) {
+                cls = appData.classes[0];
+                appData.activeClassId = cls.id;
+            }
+            return cls;
+        }
+
+        function renderClassSelectOptions() {
+            const classSelect = document.getElementById('class-select');
+            if (!classSelect) return;
+            classSelect.innerHTML = '';
+
+            appData.classes.forEach(c => {
+                const opt = new Option(c.name, c.id);
+                if (c.id === appData.activeClassId) opt.selected = true;
+                classSelect.add(opt);
+            });
+        }
+
+        function handleClassChange(newClassId) {
+            appData.activeClassId = newClassId;
+            saveToStorage();
+            updateUIForActiveClass();
+        }
+
+        function updateUIForActiveClass() {
+            const activeClass = getActiveClass();
+            if (!activeClass) return;
+
+            // Update Headers & Titles
+            document.getElementById('header-class-tag').innerText = activeClass.name;
+            document.getElementById('home-class-name').innerText = activeClass.name;
+            document.getElementById('nav-student-count').innerText = activeClass.students.length;
+            document.getElementById('roster-class-title').innerText = activeClass.name;
+            document.getElementById('roster-count-title').innerText = activeClass.students.length;
+            document.getElementById('leaderboard-class-tag').innerText = activeClass.name;
+
+            populateSelects();
+            renderRoster();
+            renderLeaderboard();
+        }
+
+        function promptCreateClass() {
+            const name = prompt("Masukkan Nama Kelas Baru (misal: Kelas 5C):");
+            if (name && name.trim()) {
+                const newId = "class_" + Date.now();
+                appData.classes.push({
+                    id: newId,
+                    name: name.trim(),
+                    students: []
+                });
+                appData.activeClassId = newId;
+                saveToStorage();
+                renderClassSelectOptions();
+                updateUIForActiveClass();
+            }
+        }
+
+        function promptDeleteClass() {
+            if (appData.classes.length <= 1) {
+                showModal("Tidak Dapat Menghapus", "Minimal harus ada 1 kelas tersisa.");
+                return;
+            }
+            const activeClass = getActiveClass();
+            showModal(
+                `Hapus ${activeClass.name}?`,
+                `Apakah Anda yakin ingin menghapus kelas ini beserta seluruh daftar siswanya?`,
+                () => {
+                    appData.classes = appData.classes.filter(c => c.id !== activeClass.id);
+                    appData.activeClassId = appData.classes[0].id;
+                    saveToStorage();
+                    renderClassSelectOptions();
+                    updateUIForActiveClass();
+                }
+            );
+        }
+
+        function openAddStudentModal() {
+            const name = prompt("Masukkan Nama Siswa Baru:");
+            if (name && name.trim()) {
+                const activeClass = getActiveClass();
+                const newId = activeClass.students.length > 0 ? Math.max(...activeClass.students.map(s => s.id)) + 1 : 1;
+                activeClass.students.push({
+                    id: newId,
+                    name: name.trim(),
+                    score: 0,
+                    matchesPlayed: 0,
+                    wins: 0,
+                    totalCorrect: 0
+                });
+                saveToStorage();
+                updateUIForActiveClass();
+            }
+        }
+
+        function openBatchImportModal() {
+            document.getElementById('batch-names-input').value = '';
+            document.getElementById('batch-modal').classList.remove('hidden');
+        }
+
+        function closeBatchModal() {
+            document.getElementById('batch-modal').classList.add('hidden');
+        }
+
+        function processBatchImport() {
+            const input = document.getElementById('batch-names-input').value;
+            if (!input.trim()) {
+                closeBatchModal();
+                return;
+            }
+
+            const rawNames = input.split(/[\n,]+/);
+            const activeClass = getActiveClass();
+            let addedCount = 0;
+
+            rawNames.forEach(raw => {
+                const cleanName = raw.trim();
+                if (cleanName) {
+                    const newId = activeClass.students.length > 0 ? Math.max(...activeClass.students.map(s => s.id)) + 1 : 1;
+                    activeClass.students.push({
+                        id: newId,
+                        name: cleanName,
+                        score: 0,
+                        matchesPlayed: 0,
+                        wins: 0,
+                        totalCorrect: 0
+                    });
+                    addedCount++;
+                }
+            });
+
+            saveToStorage();
+            closeBatchModal();
+            updateUIForActiveClass();
+            showModal("Impor Berhasil", `Berhasil menambahkan ${addedCount} siswa ke ${activeClass.name}!`);
+        }
+
+        function deleteStudent(studentId) {
+            const activeClass = getActiveClass();
+            activeClass.students = activeClass.students.filter(s => s.id !== studentId);
+            saveToStorage();
+            updateUIForActiveClass();
+        }
+
+        function switchView(viewName) {
+            confetti.clear();
+            ['materi', 'home', 'arena', 'results', 'roster', 'leaderboard'].forEach(v => {
+                const el = document.getElementById(`view-${v}`);
+                if (el) el.classList.add('hidden');
+                const navBtn = document.getElementById(`nav-${v}`);
+                if (navBtn) {
+                    navBtn.classList.remove('bg-amber-500', 'text-slate-950');
+                    navBtn.classList.add('bg-slate-800', 'text-slate-300');
+                }
+            });
+
+            const target = document.getElementById(`view-${viewName}`);
+            if (target) target.classList.remove('hidden');
+
+            const activeNav = document.getElementById(`nav-${viewName}`);
+            if (activeNav) {
+                activeNav.classList.remove('bg-slate-800', 'text-slate-300');
+                activeNav.classList.add('bg-amber-500', 'text-slate-950');
+            }
+
+            if (viewName === 'leaderboard') renderLeaderboard();
+            if (viewName === 'roster') renderRoster();
+            if (viewName === 'arena') {
+                setTimeout(() => onWindowResize(), 100);
+            }
+        }
+
+        function populateSelects() {
+            const p1Sel = document.getElementById('p1-select');
+            const p2Sel = document.getElementById('p2-select');
+            p1Sel.innerHTML = '';
+            p2Sel.innerHTML = '';
+
+            const activeClass = getActiveClass();
+
+            if (!activeClass || activeClass.students.length < 2) {
+                p1Sel.add(new Option("Siswa Kurang (<2)", ""));
+                p2Sel.add(new Option("Siswa Kurang (<2)", ""));
+                document.getElementById('p1-stats').innerText = "Tambahkan minimal 2 siswa";
+                document.getElementById('p2-stats').innerText = "Tambahkan minimal 2 siswa";
+                return;
+            }
+
+            activeClass.students.forEach((s, idx) => {
+                p1Sel.add(new Option(s.name, idx));
+                p2Sel.add(new Option(s.name, idx));
+            });
+
+            p1Sel.selectedIndex = 0;
+            p2Sel.selectedIndex = 1;
+            p1Sel.onchange = updateMatchmakerStats;
+            p2Sel.onchange = updateMatchmakerStats;
+            updateMatchmakerStats();
+        }
+
+        function updateMatchmakerStats() {
+            const activeClass = getActiveClass();
+            if (!activeClass || activeClass.students.length < 2) return;
+
+            const p1 = activeClass.students[document.getElementById('p1-select').value];
+            const p2 = activeClass.students[document.getElementById('p2-select').value];
+            if (p1) document.getElementById('p1-stats').innerText = `Total Skor: ${p1.score} PTS | Menang: ${p1.wins}`;
+            if (p2) document.getElementById('p2-stats').innerText = `Total Skor: ${p2.score} PTS | Menang: ${p2.wins}`;
+        }
+
+        function randomizePair() {
+            const activeClass = getActiveClass();
+            const count = activeClass ? activeClass.students.length : 0;
+            if (count < 2) return;
+            let r1 = Math.floor(Math.random() * count);
+            let r2 = Math.floor(Math.random() * count);
+            while (r2 === r1) {
+                r2 = Math.floor(Math.random() * count);
+            }
+            document.getElementById('p1-select').value = r1;
+            document.getElementById('p2-select').value = r2;
+            updateMatchmakerStats();
+        }
+
+        function startMatch() {
+            const activeClass = getActiveClass();
+            if (!activeClass || activeClass.students.length < 2) {
+                showModal("Siswa Kurang", "Tambahkan minimal 2 siswa di menu Kelola Siswa untuk bertanding.");
+                return;
+            }
+
+            const p1Idx = parseInt(document.getElementById('p1-select').value);
+            const p2Idx = parseInt(document.getElementById('p2-select').value);
+
+            if (isNaN(p1Idx) || isNaN(p2Idx) || p1Idx === p2Idx) {
+                showModal("Pilih 2 Siswa Berbeda!", "Pemain A dan Pemain B tidak boleh orang yang sama.");
+                return;
+            }
+
+            currentMatch = {
+                p1Index: p1Idx,
+                p2Index: p2Idx,
+                p1Correct: 0,
+                p2Correct: 0,
+                p1PointsGained: 0,
+                p2PointsGained: 0,
+                currentRound: 1,
+                totalRounds: 3,
+                currentQuestion: null,
+                isMainIdeaTarget: true,
+                roundLocked: false,
+                p1Disabled: false,
+                p2Disabled: false,
+                roundStartTime: Date.now()
+            };
+
+            const p1 = activeClass.students[p1Idx];
+            const p2 = activeClass.students[p2Idx];
+
+            document.getElementById('label-name-a').innerText = `🪖 ${p1.name}`;
+            document.getElementById('label-name-b').innerText = `${p2.name} 🪖`;
+            document.getElementById('score-badge-a').innerText = `0 PTS`;
+            document.getElementById('score-badge-b').innerText = `0 PTS`;
+
+            switchView('arena');
+            initThreeJS();
+            resetSoldierPoses();
+            loadRoundQuestion();
+        }
+
+        function loadRoundQuestion() {
+            currentMatch.roundLocked = false;
+            currentMatch.p1Disabled = false;
+            currentMatch.p2Disabled = false;
+            currentMatch.roundStartTime = Date.now();
+
+            document.getElementById('battle-banner').innerText = `RONDE ${currentMatch.currentRound} DARI 3 • ADU KECEPATAN!`;
+
+            const q = QUESTION_BANK[Math.floor(Math.random() * QUESTION_BANK.length)];
+            currentMatch.currentQuestion = q;
+
+            const isMainIdea = Math.random() > 0.35;
+            currentMatch.isMainIdeaTarget = isMainIdea;
+
+            document.getElementById('question-type-tag').innerText = isMainIdea ? "Cari: IDE POKOK" : "Cari: IDE PENDUKUNG";
+            document.getElementById('arena-paragraph').innerText = `"${q.text}"`;
+
+            const choiceObjects = q.sentences.map((sentenceText, originalIdx) => ({
+                text: sentenceText,
+                originalIdx: originalIdx,
+                isCorrect: isMainIdea ? (originalIdx === q.mainIndex) : (originalIdx !== q.mainIndex)
+            }));
+
+            renderShuffledAnswerButtons('choices-a', 'A', choiceObjects);
+            renderShuffledAnswerButtons('choices-b', 'B', choiceObjects);
+        }
+
+        function renderShuffledAnswerButtons(containerId, playerTag, choicesArray) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+
+            const shuffled = [...choicesArray].sort(() => Math.random() - 0.5);
+
+            shuffled.forEach((choice) => {
+                const btn = document.createElement('button');
+                btn.className = "btn-choice w-full p-2.5 sm:p-3 text-left rounded-xl bg-slate-900/90 border border-slate-700/80 hover:border-amber-400 text-xs sm:text-sm font-medium text-slate-200 transition flex items-center justify-between gap-2 shadow";
+                btn.innerHTML = `
+                    <span class="leading-snug">${choice.text}</span>
+                    <span class="px-2 py-0.5 rounded bg-slate-800 text-[10px] font-bold text-amber-400 uppercase shrink-0">K${choice.originalIdx + 1}</span>
+                `;
+                btn.onclick = () => handlePlayerAnswer(playerTag, choice.isCorrect, btn);
+                container.appendChild(btn);
+            });
+        }
+
+        function handlePlayerAnswer(player, isCorrect, btn) {
+            if (currentMatch.roundLocked) return;
+
+            if (player === 'A' && currentMatch.p1Disabled) return;
+            if (player === 'B' && currentMatch.p2Disabled) return;
+
+            const activeClass = getActiveClass();
+            const timeTakenSec = Math.max(0.2, (Date.now() - currentMatch.roundStartTime) / 1000);
+            const formattedTime = timeTakenSec.toFixed(2);
+
+            if (isCorrect) {
+                currentMatch.roundLocked = true;
+                sfx.shoot();
+
+                const speedBonus = Math.max(50, Math.round((15 - Math.min(timeTakenSec, 15)) * 33.3));
+                const pointsToAdd = 1000 + speedBonus;
+
+                if (player === 'A') {
+                    currentMatch.p1Correct++;
+                    currentMatch.p1PointsGained += pointsToAdd;
+                    triggerShootAnimation('A');
+                } else {
+                    currentMatch.p2Correct++;
+                    currentMatch.p2PointsGained += pointsToAdd;
+                    triggerShootAnimation('B');
+                }
+
+                document.getElementById('score-badge-a').innerText = `${currentMatch.p1PointsGained} PTS`;
+                document.getElementById('score-badge-b').innerText = `${currentMatch.p2PointsGained} PTS`;
+
+                const winnerName = player === 'A' 
+                    ? activeClass.students[currentMatch.p1Index].name 
+                    : activeClass.students[currentMatch.p2Index].name;
+
+                setTimeout(() => {
+                    showRoundResultModal(
+                        "🎯 JAWABAN BENAR & TEPAT!",
+                        `Tentara <strong>${winnerName}</strong> menjawab BENAR dalam <strong>${formattedTime} detik</strong>!<br>` +
+                        `<span class="text-amber-400 font-bold text-base">+${pointsToAdd} PTS</span> (Bonus Kecepatan: +${speedBonus} PTS)<br><br>` +
+                        `<span class="text-xs text-slate-300">${currentMatch.currentQuestion.explanation}</span>`
+                    );
+                }, 1300);
+
+            } else {
+                sfx.misfire();
+                btn.classList.add('opacity-30', 'line-through', 'pointer-events-none');
+
+                const speedImpulsePenalty = Math.max(0, Math.round((15 - Math.min(timeTakenSec, 15)) * 40));
+                const penaltyDeduction = 300 + speedImpulsePenalty;
+
+                if (player === 'A') {
+                    currentMatch.p1Disabled = true;
+                    currentMatch.p1PointsGained -= penaltyDeduction;
+                    triggerMisfireAnimation('A');
+                } else {
+                    currentMatch.p2Disabled = true;
+                    currentMatch.p2PointsGained -= penaltyDeduction;
+                    triggerMisfireAnimation('B');
+                }
+
+                document.getElementById('score-badge-a').innerText = `${currentMatch.p1PointsGained} PTS`;
+                document.getElementById('score-badge-b').innerText = `${currentMatch.p2PointsGained} PTS`;
+
+                if (currentMatch.p1Disabled && currentMatch.p2Disabled) {
+                    currentMatch.roundLocked = true;
+                    setTimeout(() => {
+                        showRoundResultModal(
+                            "💥 KEDUA TENTARA SALAH!",
+                            `Kedua siswa salah menjawab! Menjawab terlalu cepat tanpa membaca dengan teliti memberikan penalti poin terberat.<br><br>` +
+                            `<span class="text-xs text-slate-300">${currentMatch.currentQuestion.explanation}</span>`
+                        );
+                    }, 1200);
+                }
+            }
+        }
+
+        function showRoundResultModal(title, desc) {
+            document.getElementById('round-result-title').innerHTML = title;
+            document.getElementById('round-result-desc').innerHTML = desc;
+            document.getElementById('btn-next-round').innerText = currentMatch.currentRound < currentMatch.totalRounds ? "LANJUT RONDE SEBERIKUTNYA ➔" : "LIHAT HASIL AKHIR PERTANDINGAN 🏆";
+            document.getElementById('round-result-modal').classList.remove('hidden');
+        }
+
+        function proceedNextRound() {
+            document.getElementById('round-result-modal').classList.add('hidden');
+            if (currentMatch.currentRound < currentMatch.totalRounds) {
+                currentMatch.currentRound++;
+                resetSoldierPoses();
+                loadRoundQuestion();
+            } else {
+                finishMatchFinale();
+            }
+        }
+
+        function finishMatchFinale() {
+            const activeClass = getActiveClass();
+            const p1 = activeClass.students[currentMatch.p1Index];
+            const p2 = activeClass.students[currentMatch.p2Index];
+
+            p1.score = Math.max(0, p1.score + currentMatch.p1PointsGained);
+            p2.score = Math.max(0, p2.score + currentMatch.p2PointsGained);
+            p1.matchesPlayed++;
+            p2.matchesPlayed++;
+
+            p1.totalCorrect = (p1.totalCorrect || 0) + currentMatch.p1Correct;
+            p2.totalCorrect = (p2.totalCorrect || 0) + currentMatch.p2Correct;
+
+            let winnerText = "";
+            let winnerDetail = "";
+
+            if (currentMatch.p1PointsGained > currentMatch.p2PointsGained) {
+                p1.wins++;
+                triggerDefeatAnimation('B');
+                sfx.explode();
+                confetti.burst();
+                winnerText = `🏆 ${p1.name} MENANG SKOR KECEPATAN!`;
+                winnerDetail = `${p1.name} unggul dengan perolehan ${currentMatch.p1PointsGained} PTS vs ${currentMatch.p2PointsGained} PTS dari ${p2.name}!`;
+            } else if (currentMatch.p2PointsGained > currentMatch.p1PointsGained) {
+                p2.wins++;
+                triggerDefeatAnimation('A');
+                sfx.explode();
+                confetti.burst();
+                winnerText = `🏆 ${p2.name} MENANG SKOR KECEPATAN!`;
+                winnerDetail = `${p2.name} unggul dengan perolehan ${currentMatch.p2PointsGained} PTS vs ${currentMatch.p1PointsGained} PTS dari ${p1.name}!`;
+            } else {
+                winnerText = "🤝 HASIL SERI METEOR!";
+                winnerDetail = `Kedua tentara memiliki total skor yang sama yaitu ${currentMatch.p1PointsGained} PTS!`;
+            }
+
+            saveToStorage();
+
+            document.getElementById('results-winner-title').innerText = winnerText;
+            document.getElementById('results-winner-detail').innerText = winnerDetail;
+            document.getElementById('res-p1-name').innerText = p1.name;
+            document.getElementById('res-p1-score').innerText = `${currentMatch.p1PointsGained} PTS`;
+            document.getElementById('res-p1-correct').innerText = `${currentMatch.p1Correct} Soal Benar`;
+
+            document.getElementById('res-p2-name').innerText = p2.name;
+            document.getElementById('res-p2-score').innerText = `${currentMatch.p2PointsGained} PTS`;
+            document.getElementById('res-p2-correct').innerText = `${currentMatch.p2Correct} Soal Benar`;
+
+            setTimeout(() => {
+                switchView('results');
+            }, 1800);
+        }
+
+        let scene, camera, renderer;
+        let soldierA, soldierB;
+        let particles = [];
+        let animFrameId = null;
+
+        function initThreeJS() {
+            const container = document.getElementById('three-container');
+            container.innerHTML = '';
+
+            const width = container.clientWidth || 600;
+            const height = container.clientHeight || 280;
+
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x0a0f1d);
+            scene.fog = new THREE.FogExp2(0x0a0f1d, 0.03);
+
+            camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
+            camera.position.set(0, 3.5, 9.5);
+            camera.lookAt(0, 1.2, 0);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(width, height);
+            renderer.shadowMap.enabled = true;
+            container.appendChild(renderer.domElement);
+
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+            scene.add(ambientLight);
+
+            const dirLight = new THREE.DirectionalLight(0xfff0dd, 1.2);
+            dirLight.position.set(5, 10, 7);
+            dirLight.castShadow = true;
+            scene.add(dirLight);
+
+            const redLight = new THREE.PointLight(0xef4444, 2, 8);
+            redLight.position.set(-3.5, 2, 1);
+            scene.add(redLight);
+
+            const blueLight = new THREE.PointLight(0x3b82f6, 2, 8);
+            blueLight.position.set(3.5, 2, 1);
+            scene.add(blueLight);
+
+            const floorGeo = new THREE.PlaneGeometry(30, 20);
+            const floorMat = new THREE.MeshStandardMaterial({ color: 0x111827, roughness: 0.8 });
+            const floor = new THREE.Mesh(floorGeo, floorMat);
+            floor.rotation.x = -Math.PI / 2;
+            floor.position.y = 0;
+            scene.add(floor);
+
+            const gridHelper = new THREE.GridHelper(30, 20, 0x3b82f6, 0x1e293b);
+            gridHelper.position.y = 0.01;
+            scene.add(gridHelper);
+
+            soldierA = create3DSoldier(0xef4444);
+            soldierA.position.set(-3.2, 0, 0);
+            soldierA.rotation.y = Math.PI / 2;
+            scene.add(soldierA);
+
+            soldierB = create3DSoldier(0x3b82f6);
+            soldierB.position.set(3.2, 0, 0);
+            soldierB.rotation.y = -Math.PI / 2;
+            scene.add(soldierB);
+
+            window.addEventListener('resize', onWindowResize);
+
+            if (animFrameId) cancelAnimationFrame(animFrameId);
+            animateThree();
+        }
+
+        function create3DSoldier(colorHex) {
+            const group = new THREE.Group();
+            const mat = new THREE.MeshStandardMaterial({ color: colorHex, roughness: 0.4 });
+            const darkMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.6 });
+            const gunMat = new THREE.MeshStandardMaterial({ color: 0x090d16, metalness: 0.8, roughness: 0.2 });
+
+            const bodyGeo = new THREE.BoxGeometry(0.8, 1.1, 0.5);
+            const body = new THREE.Mesh(bodyGeo, mat);
+            body.position.y = 1.1;
+            group.add(body);
+
+            const headGeo = new THREE.SphereGeometry(0.35, 12, 12);
+            const head = new THREE.Mesh(headGeo, mat);
+            head.position.y = 1.9;
+            group.add(head);
+
+            const helmetGeo = new THREE.CylinderGeometry(0.42, 0.45, 0.15, 12);
+            const helmet = new THREE.Mesh(helmetGeo, darkMat);
+            helmet.position.y = 2.05;
+            group.add(helmet);
+
+            const gunGeo = new THREE.BoxGeometry(0.12, 0.12, 1.1);
+            const gun = new THREE.Mesh(gunGeo, gunMat);
+            gun.position.set(0.3, 1.25, 0.5);
+            group.add(gun);
+
+            const legGeo = new THREE.BoxGeometry(0.3, 0.8, 0.3);
+            const leg1 = new THREE.Mesh(legGeo, darkMat);
+            leg1.position.set(-0.2, 0.4, 0);
+            group.add(leg1);
+
+            const leg2 = new THREE.Mesh(legGeo, darkMat);
+            leg2.position.set(0.2, 0.4, 0);
+            group.add(leg2);
+
+            return group;
+        }
+
+        function onWindowResize() {
+            if (!renderer || !camera) return;
+            const container = document.getElementById('three-container');
+            if (!container) return;
+            const width = container.clientWidth || 600;
+            const height = container.clientHeight || 280;
+            camera.aspect = width / height;
+            camera.updateProjectionMatrix();
+            renderer.setSize(width, height);
+        }
+
+        function resetSoldierPoses() {
+            if (!soldierA || !soldierB) return;
+            soldierA.position.set(-3.2, 0, 0);
+            soldierA.rotation.set(0, Math.PI / 2, 0);
+
+            soldierB.position.set(3.2, 0, 0);
+            soldierB.rotation.set(0, -Math.PI / 2, 0);
+        }
+
+        function triggerShootAnimation(shooter) {
+            const isA = shooter === 'A';
+            const srcSoldier = isA ? soldierA : soldierB;
+            const tgtSoldier = isA ? soldierB : soldierA;
+
+            srcSoldier.position.x += isA ? -0.3 : 0.3;
+            setTimeout(() => { srcSoldier.position.x = isA ? -3.2 : 3.2; }, 150);
+
+            const laserGeo = new THREE.CylinderGeometry(0.04, 0.04, 6, 8);
+            const laserMat = new THREE.MeshBasicMaterial({ color: isA ? 0xef4444 : 0x3b82f6 });
+            const laser = new THREE.Mesh(laserGeo, laserMat);
+            laser.rotation.z = Math.PI / 2;
+            laser.position.set(0, 1.3, 0);
+            scene.add(laser);
+
+            setTimeout(() => {
+                scene.remove(laser);
+                sfx.hit();
+                spawn3DHitExplosion(tgtSoldier.position.x, 1.3, 0, isA ? 0xef4444 : 0x3b82f6);
+
+                tgtSoldier.rotation.z = isA ? -0.4 : 0.4;
+                tgtSoldier.position.x += isA ? 0.4 : -0.4;
+
+                camera.position.y += 0.2;
+                setTimeout(() => { camera.position.y = 3.5; }, 100);
+
+                setTimeout(() => {
+                    tgtSoldier.rotation.z = 0;
+                    tgtSoldier.position.x = isA ? 3.2 : -3.2;
+                }, 400);
+
+            }, 120);
+        }
+
+        function triggerMisfireAnimation(player) {
+            const isA = player === 'A';
+            const soldier = isA ? soldierA : soldierB;
+
+            soldier.rotation.z = isA ? 0.3 : -0.3;
+            spawn3DHitExplosion(soldier.position.x, 1.2, 0, 0xf59e0b);
+
+            setTimeout(() => {
+                soldier.rotation.z = 0;
+            }, 500);
+        }
+
+        function triggerDefeatAnimation(defeatedPlayer) {
+            const isA = defeatedPlayer === 'A';
+            const soldier = isA ? soldierA : soldierB;
+
+            soldier.rotation.z = isA ? -Math.PI / 2 : Math.PI / 2;
+            soldier.position.y = 0.3;
+            spawn3DHitExplosion(soldier.position.x, 0.5, 0, 0xef4444);
+        }
+
+        function spawn3DHitExplosion(x, y, z, colorHex) {
+            for (let i = 0; i < 20; i++) {
+                const pGeo = new THREE.SphereGeometry(Math.random() * 0.08 + 0.03, 6, 6);
+                const pMat = new THREE.MeshBasicMaterial({ color: colorHex });
+                const p = new THREE.Mesh(pGeo, pMat);
+                p.position.set(x, y, z);
+                p.userData = {
+                    vx: (Math.random() - 0.5) * 0.2,
+                    vy: Math.random() * 0.2 + 0.05,
+                    vz: (Math.random() - 0.5) * 0.2,
+                    life: 30
+                };
+                scene.add(p);
+                particles.push(p);
+            }
+        }
+
+        function animateThree() {
+            animFrameId = requestAnimationFrame(animateThree);
+
+            particles.forEach(p => {
+                p.position.x += p.userData.vx;
+                p.position.y += p.userData.vy;
+                p.position.z += p.userData.vz;
+                p.userData.vy -= 0.008;
+                p.userData.life--;
+            });
+
+            particles = particles.filter(p => {
+                if (p.userData.life <= 0) {
+                    scene.remove(p);
+                    return false;
+                }
+                return true;
+            });
+
+            if (renderer && scene && camera) {
+                renderer.render(scene, camera);
+            }
+        }
+
+        function renderRoster() {
+            const grid = document.getElementById('roster-grid');
+            if (!grid) return;
+            grid.innerHTML = '';
+
+            const activeClass = getActiveClass();
+            if (!activeClass || activeClass.students.length === 0) {
+                grid.innerHTML = `<div class="col-span-full text-center py-8 text-slate-500 text-sm">Belum ada siswa di kelas ini. Klik "+ Tambah Siswa" atau "Paste Banyak Nama".</div>`;
+                return;
+            }
+
+            activeClass.students.forEach((s, idx) => {
+                const card = document.createElement('div');
+                card.className = "bg-slate-900 border border-slate-800 rounded-xl p-3 flex items-center justify-between gap-2 shadow";
+                card.innerHTML = `
+                    <div class="flex items-center gap-2 overflow-hidden flex-1">
+                        <span class="w-6 h-6 rounded-full bg-slate-800 text-slate-400 flex items-center justify-center text-xs font-bold shrink-0">${idx + 1}</span>
+                        <input type="text" value="${s.name}" onchange="updateStudentName(${s.id}, this.value)" 
+                            class="bg-transparent font-bold text-slate-100 text-sm focus:bg-slate-800 focus:px-2 rounded outline-none w-full truncate">
+                    </div>
+                    <div class="text-right shrink-0 flex items-center gap-2">
+                        <div>
+                            <span class="text-xs font-military text-amber-400 block">${s.score} PTS</span>
+                            <span class="text-[10px] text-slate-500">${s.wins}W / ${s.matchesPlayed}M</span>
+                        </div>
+                        <button onclick="deleteStudent(${s.id})" title="Hapus Siswa" class="text-slate-500 hover:text-red-400 p-1 text-xs">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function updateStudentName(studentId, newName) {
+            if (!newName.trim()) return;
+            const activeClass = getActiveClass();
+            const student = activeClass.students.find(s => s.id === studentId);
+            if (student) {
+                student.name = newName.trim();
+                saveToStorage();
+                populateSelects();
+            }
+        }
+
+        function renderLeaderboard() {
+            const tbody = document.getElementById('leaderboard-table-body');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+            
+            const activeClass = getActiveClass();
+            if (!activeClass || activeClass.students.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-slate-500">Belum ada data siswa.</td></tr>`;
+                return;
+            }
+
+            const sorted = [...activeClass.students].sort((a, b) => 
+                (b.score - a.score) || (b.wins - a.wins) || ((b.totalCorrect || 0) - (a.totalCorrect || 0))
+            );
+
+            sorted.forEach((s, idx) => {
+                const tr = document.createElement('tr');
+                tr.className = idx % 2 === 0 ? "bg-slate-900/50" : "bg-slate-800/30";
+                let medal = `${idx + 1}`;
+                if (idx === 0) medal = "🥇";
+                if (idx === 1) medal = "🥈";
+                if (idx === 2) medal = "🥉";
+
+                tr.innerHTML = `
+                    <td class="py-3 px-4 text-center font-bold">${medal}</td>
+                    <td class="py-3 px-4 font-bold text-white">${s.name}</td>
+                    <td class="py-3 px-4 text-center text-slate-400">${s.matchesPlayed}</td>
+                    <td class="py-3 px-4 text-center text-emerald-400 font-bold">${s.wins}</td>
+                    <td class="py-3 px-4 text-center text-blue-400 font-bold">${s.totalCorrect || 0}</td>
+                    <td class="py-3 px-4 text-right font-military text-amber-400 text-base">${s.score.toLocaleString()} PTS</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function showModal(title, desc, confirmCallback = null) {
+            const modal = document.getElementById('custom-modal');
+            document.getElementById('custom-modal-title').innerText = title;
+            document.getElementById('custom-modal-desc').innerText = desc;
+            const actions = document.getElementById('custom-modal-actions');
+            actions.innerHTML = '';
+
+            if (confirmCallback) {
+                const cancelBtn = document.createElement('button');
+                cancelBtn.className = "px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl text-xs";
+                cancelBtn.innerText = "Batal";
+                cancelBtn.onclick = () => modal.classList.add('hidden');
+
+                const confirmBtn = document.createElement('button');
+                confirmBtn.className = "px-4 py-2 bg-red-600 hover:bg-red-500 text-white font-bold rounded-xl text-xs";
+                confirmBtn.innerText = "Ya, Lanjutkan";
+                confirmBtn.onclick = () => {
+                    modal.classList.add('hidden');
+                    confirmCallback();
+                };
+
+                actions.appendChild(cancelBtn);
+                actions.appendChild(confirmBtn);
+            } else {
+                const okBtn = document.createElement('button');
+                okBtn.className = "px-6 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs";
+                okBtn.innerText = "OK";
+                okBtn.onclick = () => modal.classList.add('hidden');
+                actions.appendChild(okBtn);
+            }
+
+            modal.classList.remove('hidden');
+        }
+
+        function confirmResetModal() {
+            const activeClass = getActiveClass();
+            showModal(
+                `Reset Skor ${activeClass.name}?`, 
+                "Tindakan ini akan mengosongkan semua poin dan catatan kemenangan siswa pada kelas ini.",
+                resetClassScores
+            );
+        }
+
+        function resetClassScores() {
+            const activeClass = getActiveClass();
+            activeClass.students.forEach(s => { s.score = 0; s.matchesPlayed = 0; s.wins = 0; s.totalCorrect = 0; });
+            saveToStorage();
+            updateUIForActiveClass();
+        }
+
+        window.onload = function() {
+            initApp();
+        };
+    </script>
+</body>
+</html>
